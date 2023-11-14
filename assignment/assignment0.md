@@ -1,8 +1,4 @@
-# Assignment 0: Combinatorial Surfaces
-
-## Written
-
-## Coding
+# Assignment 0 (Coding): Combinatorial Surfaces
 
 ### buildVertexEdgeAdjacencyMatrix
 

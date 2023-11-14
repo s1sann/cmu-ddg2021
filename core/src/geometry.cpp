@@ -115,9 +115,15 @@ double VertexPositionGeometry::barycentricDualArea(Vertex v) const {
  * Returns: The angle clamped between 0 and π.
  */
 double VertexPositionGeometry::angle(Corner c) const {
-
     // TODO
-    return 0; // placeholder
+    Vector3 i = inputVertexPositions[c.vertex()];
+    Vector3 j = inputVertexPositions[c.halfedge().next().vertex()];
+    Vector3 k = inputVertexPositions[c.halfedge().next().next().vertex()];
+
+    Vector3 ij = j - i;
+    Vector3 ik = k - i;
+
+    return acos(dot(ij,ik)/norm(ij)/norm(ik)); // placeholder
 }
 
 /*
@@ -129,7 +135,12 @@ double VertexPositionGeometry::angle(Corner c) const {
 double VertexPositionGeometry::dihedralAngle(Halfedge he) const {
 
     // TODO
-    return 0; // placeholder
+    Vector3 ij = inputVertexPositions[he.tipVertex()] - inputVertexPositions[he.tailVertex()];
+
+    Vector3 n1 = faceNormal(he.face());
+    Vector3 n2 = faceNormal(he.twin().face());
+
+    return atan2(dot(ij/norm(ij),cross(n1,n2)),dot(n1,n2)); // placeholder
 }
 
 /*

@@ -1,8 +1,4 @@
-# Assignment 1: Exterior Calculus
-
-## Written
-
-## Coding
+# Assignment 1 (Coding): Exterior Calculus
 
 ### cotan
 
@@ -134,3 +130,4 @@ SparseMatrix<double> VertexPositionGeometry::buildExteriorDerivative1Form() cons
 }
 ```
 
+## 
