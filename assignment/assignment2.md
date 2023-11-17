@@ -13,3 +13,11 @@ inverse tangent formula
 $$
 \theta=atan2(e_{ij}\times n_1\cdot e_{jk}\times n_2,n_1\cdot n_2)
 $$
+
+### vertexNormalEquallyWeighted
+
+$$
+N_i^\phi:=\sum_{ijk\in F}\phi_i^{jk}N_{ijk}
+$$
+
+### vertexNormalAngleWeighted
