@@ -32,6 +32,9 @@
 #include "geometrycentral/surface/vertex_position_geometry.h"
 #include <complex>
 
+typedef Eigen::SparseMatrix<double> SpMat;
+typedef Eigen::Triplet<double> Tri;
+
 namespace geometrycentral {
 namespace surface {
 
@@ -302,10 +305,10 @@ double VertexPositionGeometry::circumcentricDualArea(Vertex v) const {
         Vector3 ij = j - i;
         Vector3 ik = k - i;
 
-        a += norm2(ij)*cotan(c.halfedge())+norm2(ik)*cotan(c.halfedge().next().next());
+        a += norm2(ij) * cotan(c.halfedge()) + norm2(ik) * cotan(c.halfedge().next().next());
     }
 
-    return a/8.; // placeholder
+    return a / 8.; // placeholder
 }
 
 /*
@@ -334,9 +337,23 @@ std::pair<double, double> VertexPositionGeometry::principalCurvatures(Vertex v) 
  * Returns: Sparse positive definite Laplace matrix for the mesh.
  */
 SparseMatrix<double> VertexPositionGeometry::laplaceMatrix() const {
-
     // TODO
-    return identityMatrix<double>(1); // placeholder
+    std::vector<Tri> coefficients;
+
+    for (Vertex v : mesh.vertices()) {
+        double sum = 0.;
+        for (Halfedge he : v.incomingHalfedges()) {
+            double num = (cotan(he) + cotan(he.twin())) / 2;
+            coefficients.push_back(Tri(v.getIndex(), he.vertex().getIndex(), -num));
+            sum += num;
+        }
+        coefficients.push_back(Tri(v.getIndex(), v.getIndex(), sum+1e-8));
+    }
+
+    SpMat m(mesh.nVertices(), mesh.nVertices());
+    m.setFromTriplets(coefficients.begin(), coefficients.end());
+
+    return m; // placeholder
 }
 
 /*
@@ -346,9 +363,15 @@ SparseMatrix<double> VertexPositionGeometry::laplaceMatrix() const {
  * Returns: Sparse mass matrix for the mesh.
  */
 SparseMatrix<double> VertexPositionGeometry::massMatrix() const {
-
     // TODO
-    return identityMatrix<double>(1); // placeholder
+    std::vector<Tri> coefficients;
+
+    for (Vertex v : mesh.vertices()) coefficients.push_back(Tri(v.getIndex(), v.getIndex(), barycentricDualArea(v)));
+
+    SpMat m(mesh.nVertices(), mesh.nVertices());
+    m.setFromTriplets(coefficients.begin(), coefficients.end());
+
+    return m; // placeholder
 }
 
 /*
