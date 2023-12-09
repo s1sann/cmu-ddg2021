@@ -165,19 +165,16 @@ Vector<size_t> SimplicialComplexOperators::buildFaceVector(const MeshSubset& sub
 MeshSubset SimplicialComplexOperators::star(const MeshSubset& subset) const {
 
     // TODO
-    SpMat vertexEdgeSpMat = buildVertexEdgeAdjacencyMatrix();
-    SpMat faceEdgeSpMat = buildFaceEdgeAdjacencyMatrix();
-
     MeshSubset star = subset.deepCopy();
 
     for (size_t idx : subset.vertices)
-        for (int k = 0; k < vertexEdgeSpMat.outerSize(); k++)
-            for (SpMat::InnerIterator it(vertexEdgeSpMat, k); it; ++it)
+        for (int k = 0; k < A0.outerSize(); k++)
+            for (SpMat::InnerIterator it(A0, k); it; ++it)
                 if (it.col() == int(idx)) star.addEdge(it.row());
 
     for (size_t idx : star.edges)
-        for (int k = 0; k < faceEdgeSpMat.outerSize(); k++)
-            for (SpMat::InnerIterator it(faceEdgeSpMat, k); it; ++it)
+        for (int k = 0; k < A1.outerSize(); k++)
+            for (SpMat::InnerIterator it(A1, k); it; ++it)
                 if (it.col() == int(idx)) star.addFace(it.row());
 
     return star; // placeholder
@@ -193,19 +190,16 @@ MeshSubset SimplicialComplexOperators::star(const MeshSubset& subset) const {
 MeshSubset SimplicialComplexOperators::closure(const MeshSubset& subset) const {
 
     // TODO
-    SpMat vertexEdgeSpMat = buildVertexEdgeAdjacencyMatrix();
-    SpMat faceEdgeSpMat = buildFaceEdgeAdjacencyMatrix();
-
     MeshSubset closure = subset.deepCopy();
 
     for (size_t idx : subset.faces)
-        for (int k = 0; k < faceEdgeSpMat.outerSize(); k++)
-            for (SpMat::InnerIterator it(faceEdgeSpMat, k); it; ++it)
+        for (int k = 0; k < A1.outerSize(); k++)
+            for (SpMat::InnerIterator it(A1, k); it; ++it)
                 if (it.row() == int(idx)) closure.addEdge(it.col());
 
     for (size_t idx : closure.edges)
-        for (int k = 0; k < vertexEdgeSpMat.outerSize(); k++)
-            for (SpMat::InnerIterator it(vertexEdgeSpMat, k); it; ++it)
+        for (int k = 0; k < A0.outerSize(); k++)
+            for (SpMat::InnerIterator it(A0, k); it; ++it)
                 if (it.row() == int(idx)) closure.addVertex(it.col());
 
     return closure; // placeholder
@@ -250,9 +244,6 @@ bool SimplicialComplexOperators::isComplex(const MeshSubset& subset) const {
 int SimplicialComplexOperators::isPureComplex(const MeshSubset& subset) const {
 
     // TODO
-    SpMat vertexEdgeSpMat = buildVertexEdgeAdjacencyMatrix();
-    SpMat faceEdgeSpMat = buildFaceEdgeAdjacencyMatrix();   
-
     MeshSubset isPure;
 
     if (!isComplex(subset)) {
@@ -291,8 +282,6 @@ int SimplicialComplexOperators::isPureComplex(const MeshSubset& subset) const {
 MeshSubset SimplicialComplexOperators::boundary(const MeshSubset& subset) const {
 
     // TODO
-    SpMat vertexEdgeSpMat = buildVertexEdgeAdjacencyMatrix();
-    SpMat faceEdgeSpMat = buildFaceEdgeAdjacencyMatrix();
 
     MeshSubset boundary;
 
@@ -301,32 +290,29 @@ MeshSubset SimplicialComplexOperators::boundary(const MeshSubset& subset) const 
         std::set<size_t> boundaryEdge;
 
         for (size_t idx : subset.faces)
-            for (int k = 0; k < faceEdgeSpMat.outerSize(); k++)
-                for (SpMat::InnerIterator it(faceEdgeSpMat, k); it; ++it)
+            for (int k = 0; k < A1.outerSize(); k++)
+                for (SpMat::InnerIterator it(A1, k); it; ++it)
                     if (it.row() == int(idx)) allEdge.push_back(it.col());
 
         for (size_t idx : subset.edges)
             if (std::count(allEdge.begin(), allEdge.end(), idx) == 1) boundaryEdge.insert(idx);
 
         boundary.addEdges(boundaryEdge);
-        boundary = closure(boundary);
-        return boundary;
+
     } else if (isPureComplex(subset) == 1) {
         std::vector<size_t> allVertex;
         std::set<size_t> boundaryVertex;
 
         for (size_t idx : subset.edges)
-            for (int k = 0; k < vertexEdgeSpMat.outerSize(); k++)
-                for (SpMat::InnerIterator it(vertexEdgeSpMat, k); it; ++it)
+            for (int k = 0; k < A0.outerSize(); k++)
+                for (SpMat::InnerIterator it(A0, k); it; ++it)
                     if (it.row() == int(idx)) allVertex.push_back(it.col());
 
-        for (size_t idx : subset.edges)
+        for (size_t idx : subset.vertices)
             if (std::count(allVertex.begin(), allVertex.end(), idx) == 1) boundaryVertex.insert(idx);
 
-        boundary.addEdges(boundaryVertex);
-        boundary = closure(boundary);
-        return boundary;
+        boundary.addVertices(boundaryVertex);
     }
 
-    return boundary; // placeholder
+    return closure(boundary); // placeholder
 }
