@@ -191,7 +191,7 @@ Vector3 VertexPositionGeometry::vertexNormalSphereInscribed(Vertex v) const {
         Vector3 ij = j - i;
         Vector3 ik = k - i;
 
-        n += cross(ij, ik) / (norm(ij) * norm(ik));
+        n += cross(ij, ik) / pow(norm(ij) * norm(ik),2);
     }
 
     return n / norm(n); // placeholder
