@@ -29,30 +29,18 @@ void SimplicialComplexOperators::assignElementIndices() {
     // integer). Similarly you can do edges and faces via geometry->edgeIndices, geometry->faceIndices, like so:
     size_t idx = 0;
     for (Vertex v : mesh->vertices()) {
-        idx = geometry->vertexIndices[v];
+        geometry->vertexIndices[v] = idx++;
     }
 
+    idx = 0;
     for (Edge e : mesh->edges()) {
-        idx = geometry->edgeIndices[e];
+        geometry->edgeIndices[e] = idx++;
     }
 
+    idx = 0;
     for (Face f : mesh->faces()) {
-        idx = geometry->faceIndices[f];
+        geometry->faceIndices[f] = idx++;
     }
-
-    // You can more easily get the indices of mesh elements using the function getIndex(), albeit less efficiently and
-    // technically less safe (although you don't need to worry about it), like so:
-    //
-    //      v.getIndex()
-    //
-    // where v can be a Vertex, Edge, Face, Halfedge, etc. For example:
-
-    for (Vertex v : mesh->vertices()) {
-        idx = v.getIndex(); // == geometry->vertexIndices[v])
-    }
-
-    // Geometry Central already sets the indices for us, though, so this function is just here for demonstration.
-    // You don't have to do anything :)
 }
 
 /*
@@ -69,18 +57,18 @@ SparseMatrix<size_t> SimplicialComplexOperators::buildVertexEdgeAdjacencyMatrix(
     geometry->requireVertexIndices();
     geometry->requireEdgeIndices();
 
-    std::vector<Tri> cofficients;
-    SpMat A(mesh->nEdges(), mesh->nVertices());
+    std::vector<Tri> coefficients;
+    SpMat A0(mesh->nEdges(), mesh->nVertices());
 
     for (Edge e : mesh->edges()) {
         size_t idx = geometry->edgeIndices[e];
-        cofficients.push_back(Tri(idx, geometry->vertexIndices[e.firstVertex()], 1));
-        cofficients.push_back(Tri(idx, geometry->vertexIndices[e.secondVertex()], 1));
+        coefficients.push_back(Tri(idx, geometry->vertexIndices[e.firstVertex()], 1));
+        coefficients.push_back(Tri(idx, geometry->vertexIndices[e.secondVertex()], 1));
     }
 
-    A.setFromTriplets(cofficients.begin(), cofficients.end());
+    A0.setFromTriplets(coefficients.begin(), coefficients.end());
 
-    return A; // placeholder
+    return A0; // placeholder
 }
 
 /*
@@ -95,17 +83,17 @@ SparseMatrix<size_t> SimplicialComplexOperators::buildFaceEdgeAdjacencyMatrix() 
     geometry->requireFaceIndices();
     geometry->requireEdgeIndices();
 
-    std::vector<T> cofficients;
-    SpMat A(mesh->nFaces(), mesh->nEdges());
+    std::vector<Tri> coefficients;
+    SpMat A1(mesh->nFaces(), mesh->nEdges());
 
     for (Face f : mesh->faces()) {
         size_t idx = geometry->faceIndices[f];
-        for (Edge e : f.adjacentEdges()) cofficients.push_back(T(idx, geometry->edgeIndices[e], 1));
+        for (Edge e : f.adjacentEdges()) coefficients.push_back(Tri(idx, geometry->edgeIndices[e], 1));
     }
 
-    A.setFromTriplets(cofficients.begin(), cofficients.end());
+    A1.setFromTriplets(coefficients.begin(), coefficients.end());
 
-    return A; // placeholder
+    return A1; // placeholder
 }
 
 /*
@@ -151,7 +139,7 @@ Vector<size_t> SimplicialComplexOperators::buildFaceVector(const MeshSubset& sub
     // TODO
     Vector<size_t> f = Vector<size_t>::Zero(mesh->nFaces());
 
-    for (size_t idx : subset.edges) f[idx] = 1;
+    for (size_t idx : subset.faces) f[idx] = 1;
 
     return f;
 }
@@ -230,8 +218,7 @@ MeshSubset SimplicialComplexOperators::link(const MeshSubset& subset) const {
 bool SimplicialComplexOperators::isComplex(const MeshSubset& subset) const {
 
     // TODO
-    if (closure(subset).equals(subset)) return true;
-    return false; // placeholder
+    return closure(subset).equals(subset);
 }
 
 /*
