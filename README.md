@@ -10,4 +10,4 @@ continue update
 
 ## Assignment 0
 
-[参考答案](https://s1san.github.io/cmu-ddg2021-assignment0/)
+[参考答案](https://s1sann.github.io/cmu-ddg2021-assignment0/)
